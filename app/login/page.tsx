@@ -14,7 +14,7 @@ export default function Home() {
     useEffect(() => {
         const isLoggedIn = localStorage.getItem('isLoggedIn');
         if (isLoggedIn === 'true') {
-            router.push('/create');
+            router.push('/admin');
         }
     }, [router]);
 
@@ -27,7 +27,7 @@ export default function Home() {
 
         if (admin === 'admin' && password === 'admin') {
             localStorage.setItem('isLoggedIn', 'true');
-            router.push('/create');
+            router.push('/admin');
         } else {
             setErr('Invalid credentials. Please try again.');
             setIsLoading(false);
