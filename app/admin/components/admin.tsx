@@ -133,20 +133,6 @@ export default function Admin() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10">
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/20">
-            <h3 className="text-sm font-medium text-slate-600 mb-1">Total Posts</h3>
-            <p className="text-3xl font-bold text-slate-800">{blogs.length}</p>
-          </div>
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/20">
-            <h3 className="text-sm font-medium text-slate-600 mb-1">Published</h3>
-            <p className="text-3xl font-bold text-emerald-600">{blogs.length}</p>
-          </div>
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/20">
-            <h3 className="text-sm font-medium text-slate-600 mb-1">Authors</h3>
-            <p className="text-3xl font-bold text-blue-600">{new Set(blogs.map(blog => blog.author)).size}</p>
-          </div>
-        </div>
 
         {blogs.length === 0 ? (
           <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl border border-white/20 p-16 text-center">
