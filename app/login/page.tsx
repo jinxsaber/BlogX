@@ -21,7 +21,7 @@ export default function Home() {
 
         if (admin === 'admin' && password === 'admin') {
             localStorage.setItem('isLoggedIn', 'true');
-            router.push('/dashboard');
+            router.push('/create');
         } else {
             setErr('Invalid Credentials');
         }
