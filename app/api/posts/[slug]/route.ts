@@ -11,7 +11,13 @@ interface Blog {
   slug: string;
 }
 
-export async function GET(req: NextRequest, { params }: { params: { slug: string } }) {
+interface Params {
+  params: {
+    slug: string;
+  };
+}
+
+export async function GET(req: NextRequest, { params }: Params) {
   try {
     await connectToDatabase();
 

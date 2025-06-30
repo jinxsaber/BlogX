@@ -1,11 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import 'react-quill-new/dist/quill.snow.css';
 import { useRouter } from 'next/navigation';
 
-// Dynamically import React Quill New to avoid SSR issues
 const ReactQuill = dynamic(() => import('react-quill-new'), { ssr: false });
 
 interface BlogForm {
@@ -18,13 +17,20 @@ const CreatePost: React.FC = () => {
   const [formData, setFormData] = useState<BlogForm>({
     title: '',
     content: '',
-    author: '',
+    author: 'Admin',
   });
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const router = useRouter();
 
-  // Quill modules for toolbar configuration
+  // Check login status on component mount
+  useEffect(() => {
+    const isLoggedIn = localStorage.getItem('isLoggedIn');
+    if (isLoggedIn !== 'true') {
+      router.push('/login');
+    }
+  }, [router]);
+
   const modules = {
     toolbar: [
       [{ header: [1, 2, 3, false] }],
@@ -61,8 +67,8 @@ const CreatePost: React.FC = () => {
       }
 
       setSuccess(data.message);
-      setFormData({ title: '', content: '', author: '' });
-      setTimeout(() => router.push('/posts'), 2000); // Redirect after 2 seconds
+      setFormData({ title: '', content: '', author: 'Admin' });
+      setTimeout(() => router.push('/posts'), 1000);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     }
@@ -101,20 +107,6 @@ const CreatePost: React.FC = () => {
                 onChange={(e) => handleChange(e, 'title')}
                 className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                 placeholder="Enter your blog post title"
-              />
-            </div>
-            <div>
-              <label htmlFor="author" className="block text-sm font-medium text-gray-700">
-                Author
-              </label>
-              <input
-                id="author"
-                name="author"
-                type="text"
-                value={formData.author}
-                onChange={(e) => handleChange(e, 'author')}
-                className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                placeholder="Enter author name"
               />
             </div>
             <div>
