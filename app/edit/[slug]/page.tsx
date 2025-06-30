@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import 'react-quill-new/dist/quill.snow.css';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 
 const ReactQuill = dynamic(() => import('react-quill-new'), { ssr: false });
 
@@ -13,22 +13,56 @@ interface BlogForm {
   author: string;
 }
 
-const CreatePost: React.FC = () => {
+const EditPost: React.FC = () => {
   const [formData, setFormData] = useState<BlogForm>({
     title: '',
     content: '',
-    author: 'Admin',
+    author: '',
   });
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [isClient, setIsClient] = useState(false);
   const router = useRouter();
+  const params = useParams();
+  const slug = params.slug as string;
 
   useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isClient) return;
+    
     const isLoggedIn = localStorage.getItem('isLoggedIn');
     if (isLoggedIn !== 'true') {
       router.push('/login');
+      return;
     }
-  }, [router]);
+
+    const fetchPost = async () => {
+      try {
+        const response = await fetch(`/api/posts/${slug}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch post');
+        }
+        const data = await response.json();
+        setFormData({
+          title: data.title,
+          content: data.content,
+          author: data.author || 'Admin',
+        });
+        setLoading(false);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load post');
+        setLoading(false);
+      }
+    };
+
+    if (slug) {
+      fetchPost();
+    }
+  }, [router, slug, isClient]);
 
   const modules = {
     toolbar: [
@@ -45,29 +79,31 @@ const CreatePost: React.FC = () => {
     setError(null);
     setSuccess(null);
 
-    if (!formData.title || !formData.content || !formData.author) {
-      setError('All fields are required');
+    if (!formData.title || !formData.content) {
+      setError('Title and content are required');
       return;
     }
 
     try {
-      const response = await fetch('/api/posts/create', {
-        method: 'POST',
+      const response = await fetch(`/api/posts/${slug}`, {
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          title: formData.title,
+          content: formData.content,
+        }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to create post');
+        throw new Error(data.error || 'Failed to update post');
       }
 
-      setSuccess(data.message);
-      setFormData({ title: '', content: '', author: 'Admin' });
-      setTimeout(() => router.push('/posts'), 1000);
+      setSuccess('Post updated successfully!');
+      setTimeout(() => router.push('/admin'), 1500);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     }
@@ -84,12 +120,22 @@ const CreatePost: React.FC = () => {
     }
   };
 
+  if (!isClient || loading) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-xl">Loading post...</div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-2xl w-full space-y-8 bg-white p-8 rounded-lg shadow-lg">
         <div>
           <h2 className="text-center text-3xl font-extrabold text-gray-900">
-            Create a New Blog Post
+            Edit Blog Post
           </h2>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
@@ -131,12 +177,19 @@ const CreatePost: React.FC = () => {
             <div className="text-green-600 text-sm text-center">{success}</div>
           )}
 
-          <div>
+          <div className="flex space-x-4 mt-16">
+            <button
+              type="button"
+              onClick={() => router.push('/admin')}
+              className="flex-1 py-2 px-4 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              Cancel
+            </button>
             <button
               type="submit"
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              className="cursor-pointer flex-1 py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
             >
-              Create Post
+              Update Post
             </button>
           </div>
         </form>
@@ -145,4 +198,4 @@ const CreatePost: React.FC = () => {
   );
 };
 
-export default CreatePost;
+export default EditPost;
